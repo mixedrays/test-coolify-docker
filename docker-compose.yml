@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  node-app:
+    build: . # Assumes Dockerfile is in the root project directory
+    ports:
+      - "3000:3000" # Expose Node app port
+    environment:
+      # Add necessary environment variables for Node app (e.g., DB connection)
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase # Example
+      - PORT=3000
+      - BASIC_AUTH_USERNAME=admin # Example
+      - BASIC_AUTH_PASSWORD=password # Example
+      # Add the URL for the Python service
+      - PYTHON_SERVICE_URL=http://python-service:5000
+      # Add the URL for the Go service
+      - GO_SERVICE_URL=http://go-service:8080
+    depends_on:
+      - db # If you have a db service
+      - python-service
+      - go-service
+    # Add volumes if needed, e.g., for node_modules or source code mapping
+
+  python-service:
+    build: ./python-app
+    # No 'ports' needed here unless you want to access it directly from host
+    # The 'node-app' service can access it via 'python-service:5000'
+
+  go-service:
+    build: ./go-app # Assumes Dockerfile is in the ./go-app directory
+    # No 'ports' needed here unless you want to access it directly from host
+    # The 'node-app' service can access it via 'go-service:8080'
+    # Go app should listen on port 8080 inside the container
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432" # Map host port 5432 to container port 5432 (optional, for external access)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persist database data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Run init script on startup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data: # Define the volume for data persistence
