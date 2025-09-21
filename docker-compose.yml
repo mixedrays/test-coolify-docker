@@ -7,7 +7,7 @@ services:
       - "3000:3000" # Expose Node app port
     environment:
       # Add necessary environment variables for Node app (e.g., DB connection)
-      - DATABASE_URL=postgresql://user:password@db:5432/proddb # Example
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
       - PORT=3000
       - BASIC_AUTH_USERNAME=admin # Example
       - BASIC_AUTH_PASSWORD=password # Example

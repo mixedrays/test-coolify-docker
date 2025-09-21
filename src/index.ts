@@ -1,7 +1,7 @@
 import express, {Request, Response} from "express";
 import dotenv from "dotenv";
 import axios from "axios"; // Import axios
-import {basicAuth} from "./auth";
+import {basicAuth, enhancedAuth} from "./auth";
 import pool from "./db"; // Import pool to ensure db connection is attempted on start
 
 dotenv.config();
@@ -19,9 +19,14 @@ app.get("/", (req: Request, res: Response) => {
     res.send("Hello World! Public route.");
 });
 
-// Protected route
-app.get("/protected", basicAuth, (req: Request, res: Response) => {
-    res.send(`Welcome to the protected area! Count: ${count} times accessed.`);
+// Protected route with enhanced authentication
+app.get("/protected", enhancedAuth, (req: Request, res: Response) => {
+    res.json({
+        message: `Welcome to the protected area! Count: ${count} times accessed.`,
+        count: count,
+        timestamp: new Date().toISOString(),
+        info: "You successfully authenticated or created a new account!"
+    });
     count++;
 });
 
